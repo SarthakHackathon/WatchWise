@@ -57,6 +57,22 @@ export function AuthProvider({ children }) {
     if (err) setError(err.message);
   };
 
+  const loginWithApple = async () => {
+    const { error: err } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: { redirectTo: window.location.origin },
+    });
+    if (err) setError(err.message);
+  };
+
+  const loginWithFacebook = async () => {
+    const { error: err } = await supabase.auth.signInWithOAuth({
+      provider: 'facebook',
+      options: { redirectTo: window.location.origin },
+    });
+    if (err) setError(err.message);
+  };
+
   const logout = async () => {
     await supabase.auth.signOut();
   };
@@ -70,6 +86,8 @@ export function AuthProvider({ children }) {
       login,
       signup,
       loginWithGoogle,
+      loginWithApple,
+      loginWithFacebook,
       logout,
       error,
       clearError,

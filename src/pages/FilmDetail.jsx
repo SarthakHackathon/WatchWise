@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Star, Clock, Calendar, Bookmark, BookmarkCheck,
@@ -30,6 +31,10 @@ export default function FilmDetail({ onAuthRequired }) {
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
 
   const film = getFilmById(id);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
 
   if (!film) {
     return (

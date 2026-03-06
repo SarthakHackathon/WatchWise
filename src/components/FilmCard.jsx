@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Bookmark, Star, Play } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useWatchlist } from '../context/WatchlistContext';
@@ -8,6 +8,7 @@ export default function FilmCard({ film, onAuthRequired }) {
   const { isAuthenticated } = useAuth();
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
   const [imgError, setImgError] = useState(false);
+  const navigate = useNavigate();
 
   const inWatchlist = isInWatchlist(film.id);
 
@@ -35,7 +36,10 @@ export default function FilmCard({ film, onAuthRequired }) {
       : 'bg-red-500/90';
 
   return (
-    <div className="group relative overflow-hidden rounded-xl bg-gray-800 cursor-pointer shadow-lg hover:shadow-2xl hover:shadow-black/50 transition-all duration-300 hover:-translate-y-1">
+    <div
+      className="group relative overflow-hidden rounded-xl bg-gray-800 cursor-pointer shadow-lg hover:shadow-2xl hover:shadow-black/50 transition-all duration-300 hover:-translate-y-1"
+      onClick={() => navigate(`/film/${film.id}`)}
+    >
       {/* Poster area */}
       <div className="relative aspect-[2/3] w-full overflow-hidden">
         {!imgError && film.poster ? (
