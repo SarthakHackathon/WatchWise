@@ -2,11 +2,13 @@ import { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Star, Clock, Calendar, Bookmark, BookmarkCheck,
-  ExternalLink, Play, Users,
+  ExternalLink, Play, Users, Tv,
 } from 'lucide-react';
 import { getFilmById, films } from '../data/films';
 import { useAuth } from '../context/AuthContext';
 import { useWatchlist } from '../context/WatchlistContext';
+import { useFilmCredits } from '../hooks/useFilmCredits';
+import { useTMDBDetail } from '../hooks/useTMDBDetail';
 import FilmCard from '../components/FilmCard';
 import PopcornRating from '../components/PopcornRating';
 
@@ -31,11 +33,28 @@ export default function FilmDetail({ onAuthRequired }) {
   const { isAuthenticated } = useAuth();
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
 
-  const film = getFilmById(id);
+  const staticFilm = getFilmById(id);
+  const { cast: staticTmdbCast, imgBase } = useFilmCredits(staticFilm?.tmdb_id);
+  const { film: tmdbFilm, cast: tmdbCast, similar: tmdbSimilar, loading: tmdbLoading, isTMDB } = useTMDBDetail(id);
+
+  const film = isTMDB ? tmdbFilm : staticFilm;
+  const cast = isTMDB ? tmdbCast : staticTmdbCast;
+  const similar = isTMDB
+    ? tmdbSimilar
+    : films.filter((f) => f.id !== id && f.genres.some((g) => film?.genres.includes(g))).slice(0, 5);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [id]);
+
+  if (isTMDB && tmdbLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-gray-400">Loading...</p>
+      </div>
+    );
+  }
 
   if (!film) {
     return (
@@ -51,12 +70,8 @@ export default function FilmDetail({ onAuthRequired }) {
   }
 
   const inWatchlist = isInWatchlist(film.id);
-  const similar = films
-    .filter((f) => f.id !== film.id && f.genres.some((g) => film.genres.includes(g)))
-    .slice(0, 5);
-
-  const hours = Math.floor(film.runtime / 60);
-  const mins = film.runtime % 60;
+  const hours = film.runtime ? Math.floor(film.runtime / 60) : null;
+  const mins = film.runtime ? film.runtime % 60 : null;
 
   const handleWatchlist = () => {
     if (!isAuthenticated) { onAuthRequired(); return; }
@@ -118,10 +133,25 @@ export default function FilmDetail({ onAuthRequired }) {
                 <Calendar size={14} />
                 {film.year}
               </div>
-              <div className="flex items-center gap-1 text-gray-400 text-sm">
-                <Clock size={14} />
-                {hours}h {mins}m
-              </div>
+              {film.mediaType === 'tv' && film.seasons && (
+                <div className="flex items-center gap-1 text-gray-400 text-sm">
+                  <Tv size={14} />
+                  {film.seasons} season{film.seasons !== 1 ? 's' : ''}
+                  {film.episodes ? ` · ${film.episodes} episodes` : ''}
+                </div>
+              )}
+              {film.runtime && film.mediaType !== 'tv' && (
+                <div className="flex items-center gap-1 text-gray-400 text-sm">
+                  <Clock size={14} />
+                  {hours}h {mins}m
+                </div>
+              )}
+              {film.runtime && film.mediaType === 'tv' && (
+                <div className="flex items-center gap-1 text-gray-400 text-sm">
+                  <Clock size={14} />
+                  ~{film.runtime}m / episode
+                </div>
+              )}
             </div>
 
             {/* Genres + Popcorn Rating */}
@@ -146,11 +176,15 @@ export default function FilmDetail({ onAuthRequired }) {
               {film.synopsis}
             </p>
 
-            {/* Director */}
-            <p className="text-gray-400 text-sm mb-6">
-              <span className="text-gray-500">Directed by </span>
-              <span className="text-white font-medium">{film.director}</span>
-            </p>
+            {/* Director / Creator */}
+            {film.director && (
+              <p className="text-gray-400 text-sm mb-6">
+                <span className="text-gray-500">
+                  {film.mediaType === 'tv' ? 'Created by ' : 'Directed by '}
+                </span>
+                <span className="text-white font-medium">{film.director}</span>
+              </p>
+            )}
 
             {/* Action buttons */}
             <div className="flex flex-wrap gap-3 mb-8">
@@ -165,28 +199,32 @@ export default function FilmDetail({ onAuthRequired }) {
                 {inWatchlist ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
                 {inWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
               </button>
-              <a
-                href={film.imdb_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm bg-yellow-500 hover:bg-yellow-400 text-black transition-all hover:scale-105 active:scale-95"
-              >
-                <ExternalLink size={16} />
-                View on IMDb
-              </a>
+              {film.imdb_url && (
+                <a
+                  href={film.imdb_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm bg-yellow-500 hover:bg-yellow-400 text-black transition-all hover:scale-105 active:scale-95"
+                >
+                  <ExternalLink size={16} />
+                  View on IMDb
+                </a>
+              )}
             </div>
 
             {/* Streaming */}
-            <div className="mb-8">
-              <h3 className="text-white font-semibold mb-3 text-sm uppercase tracking-wider text-gray-400">
-                Where to Watch
-              </h3>
-              <div className="flex flex-wrap gap-3">
-                {film.streaming.map((s) => (
-                  <StreamingButton key={s.platform} platform={s} />
-                ))}
+            {film.streaming?.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-white font-semibold mb-3 text-sm uppercase tracking-wider text-gray-400">
+                  Where to Watch
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {film.streaming.map((s) => (
+                    <StreamingButton key={s.platform} platform={s} />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
           </div>
         </div>
@@ -198,20 +236,40 @@ export default function FilmDetail({ onAuthRequired }) {
             <h2 className="text-xl font-bold text-white">Cast</h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {film.cast.map((member) => (
-              <div key={member.name} className="bg-gray-800/60 rounded-xl p-4 border border-gray-700">
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center text-white font-bold text-xl mb-3 mx-auto">
-                  {member.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+            {(cast || film.cast || []).map((member) => {
+              const name = member.name;
+              const role = member.character || member.role;
+              const photo = member.profile_path ? `${imgBase}${member.profile_path}` : null;
+              const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2);
+              return (
+                <div key={name} className="bg-gray-800/60 rounded-xl p-4 border border-gray-700 flex flex-col items-center">
+                  {photo ? (
+                    <img
+                      src={photo}
+                      alt={name}
+                      className="w-16 h-16 rounded-full object-cover mb-3 border-2 border-gray-600"
+                      onError={e => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-orange-700 items-center justify-center text-white font-bold text-xl mb-3"
+                    style={{ display: photo ? 'none' : 'flex' }}
+                  >
+                    {initials}
+                  </div>
+                  <p className="text-white text-sm font-semibold text-center leading-tight">{name}</p>
+                  <p className="text-gray-400 text-xs text-center mt-1 leading-tight">{role}</p>
                 </div>
-                <p className="text-white text-sm font-semibold text-center leading-tight">{member.name}</p>
-                <p className="text-gray-400 text-xs text-center mt-1 leading-tight">{member.role}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
-        {/* Similar Films */}
-        {similar.length > 0 && (
+        {/* Similar */}
+        {similar?.length > 0 && (
           <section className="mt-14">
             <h2 className="text-xl font-bold text-white mb-5">You Might Also Like</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
