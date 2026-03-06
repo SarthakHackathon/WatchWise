@@ -20,6 +20,7 @@ export default function AuthModal({ isOpen, onClose }) {
       setSignUpForm({ name: '', email: '', password: '' });
       setShowPassword(false);
       setLoading(false);
+      setSignUpSuccess(false);
       clearError?.();
     }
   }, [isOpen]);
@@ -30,6 +31,8 @@ export default function AuthModal({ isOpen, onClose }) {
     setTab(newTab);
     setShowPassword(false);
   };
+
+  const [signUpSuccess, setSignUpSuccess] = useState(false);
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -44,7 +47,7 @@ export default function AuthModal({ isOpen, onClose }) {
     setLoading(true);
     const ok = await signup(signUpForm.name, signUpForm.email, signUpForm.password);
     setLoading(false);
-    if (ok) onClose();
+    if (ok) setSignUpSuccess(true);
   };
 
   const handleBackdropClick = (e) => {
@@ -190,18 +193,17 @@ export default function AuthModal({ isOpen, onClose }) {
               )}
             </button>
 
-            <div className="mt-4 p-3 rounded-xl bg-gray-800/60 border border-gray-700/50">
-              <p className="text-[11px] text-gray-500 text-center font-medium uppercase tracking-wide mb-1.5">
-                Demo Credentials
-              </p>
-              <p className="text-xs text-gray-400 text-center font-mono">demo@watchwise.com</p>
-              <p className="text-xs text-gray-400 text-center font-mono">demo123</p>
-            </div>
           </form>
         )}
 
         {/* Sign Up Form */}
-        {tab === 'signup' && (
+        {tab === 'signup' && signUpSuccess && (
+          <div className="px-4 py-6 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 text-sm text-center">
+            <p className="font-semibold mb-1">Check your email!</p>
+            <p className="text-green-400/80 text-xs">We sent a confirmation link to <span className="font-mono">{signUpForm.email}</span>. Click it to activate your account.</p>
+          </div>
+        )}
+        {tab === 'signup' && !signUpSuccess && (
           <form onSubmit={handleSignUp} className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-gray-400 mb-1.5 ml-1">

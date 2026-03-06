@@ -1,50 +1,56 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
-const MOCK_USERS = [
-  { email: 'demo@watchwise.com', password: 'demo123', name: 'Demo User' },
-  { email: 'user@test.com', password: 'test123', name: 'Test User' },
-];
-
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem('watchwise_user');
-    return stored ? JSON.parse(stored) : null;
-  });
+  const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
 
-  const login = (email, password) => {
-    const found = MOCK_USERS.find(u => u.email === email && u.password === password);
-    if (found) {
-      const userData = { name: found.name, email: found.email };
-      setUser(userData);
-      localStorage.setItem('watchwise_user', JSON.stringify(userData));
-      setError(null);
-      return true;
-    } else {
-      setError('Invalid email or password. Try demo@watchwise.com / demo123');
-      return false;
-    }
-  };
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session ? mapUser(session.user) : null);
+    });
 
-  const signup = (name, email, password) => {
-    const exists = MOCK_USERS.find(u => u.email === email);
-    if (exists) {
-      setError('An account with this email already exists.');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session ? mapUser(session.user) : null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const mapUser = (u) => ({
+    id: u.id,
+    email: u.email,
+    name: u.user_metadata?.name || u.email,
+  });
+
+  const login = async (email, password) => {
+    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+    if (err) {
+      setError(err.message);
       return false;
     }
-    const userData = { name, email };
-    setUser(userData);
-    localStorage.setItem('watchwise_user', JSON.stringify(userData));
     setError(null);
     return true;
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('watchwise_user');
-    localStorage.removeItem('watchwise_watchlist');
+  const signup = async (name, email, password) => {
+    const { error: err } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { name } },
+    });
+    if (err) {
+      setError(err.message);
+      return false;
+    }
+    setError(null);
+    return true;
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
   };
 
   const clearError = () => setError(null);
