@@ -8,6 +8,7 @@ import { getFilmById, films } from '../data/films';
 import { useAuth } from '../context/AuthContext';
 import { useWatchlist } from '../context/WatchlistContext';
 import FilmCard from '../components/FilmCard';
+import PopcornRating from '../components/PopcornRating';
 
 function StreamingButton({ platform }) {
   return (
@@ -108,9 +109,10 @@ export default function FilmDetail({ onAuthRequired }) {
 
             {/* Meta row */}
             <div className="flex flex-wrap items-center gap-3 mb-4">
-              <div className="flex items-center gap-1 bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm font-bold">
+              <div className="flex items-center gap-1.5 bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm font-bold">
                 <Star size={14} fill="currentColor" />
                 {film.rating}/10
+                <span className="text-yellow-500/60 font-normal text-xs">IMDb</span>
               </div>
               <div className="flex items-center gap-1 text-gray-400 text-sm">
                 <Calendar size={14} />
@@ -122,8 +124,8 @@ export default function FilmDetail({ onAuthRequired }) {
               </div>
             </div>
 
-            {/* Genres */}
-            <div className="flex flex-wrap gap-2 mb-5">
+            {/* Genres + Popcorn Rating */}
+            <div className="flex flex-wrap items-center gap-2 mb-5">
               {film.genres.map((g) => (
                 <Link
                   key={g}
@@ -133,6 +135,10 @@ export default function FilmDetail({ onAuthRequired }) {
                   {g}
                 </Link>
               ))}
+              <div className="flex items-center gap-2 ml-1 border-l border-gray-700 pl-3">
+                <span className="text-xs text-gray-500">Your rating:</span>
+                <PopcornRating filmId={film.id} onAuthRequired={onAuthRequired} />
+              </div>
             </div>
 
             {/* Synopsis */}
@@ -181,6 +187,7 @@ export default function FilmDetail({ onAuthRequired }) {
                 ))}
               </div>
             </div>
+
           </div>
         </div>
 

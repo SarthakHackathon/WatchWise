@@ -3,12 +3,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Bookmark, Star, Play } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useWatchlist } from '../context/WatchlistContext';
+import { useRatings } from '../context/RatingsContext';
 
 export default function FilmCard({ film, onAuthRequired }) {
   const { isAuthenticated } = useAuth();
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
+  const { getRating } = useRatings();
   const [imgError, setImgError] = useState(false);
   const navigate = useNavigate();
+
+  const popcornRating = getRating(film.id);
 
   const inWatchlist = isInWatchlist(film.id);
 
@@ -158,9 +162,14 @@ export default function FilmCard({ film, onAuthRequired }) {
         <h3 className="text-white text-sm font-semibold leading-tight line-clamp-1 group-hover:text-orange-400 transition-colors">
           {film.title}
         </h3>
-        {film.year && (
-          <p className="text-gray-500 text-xs mt-0.5">{film.year}</p>
-        )}
+        <div className="flex items-center justify-between mt-0.5">
+          {film.year && <p className="text-gray-500 text-xs">{film.year}</p>}
+          {popcornRating > 0 && (
+            <span className="text-xs text-gray-400 flex items-center gap-0.5">
+              {'🍿'.repeat(popcornRating)}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

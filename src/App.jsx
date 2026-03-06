@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { WatchlistProvider } from './context/WatchlistContext';
+import { RatingsProvider } from './context/RatingsContext';
 import Navbar from './components/Navbar';
 import AuthModal from './components/AuthModal';
 import Home from './pages/Home';
@@ -32,7 +33,9 @@ export default function App() {
   return (
     <AuthProvider>
       <WatchlistProvider>
-        <AppContent />
+        <RatingsProvider>
+          <AppContent />
+        </RatingsProvider>
       </WatchlistProvider>
     </AuthProvider>
   );

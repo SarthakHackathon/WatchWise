@@ -1,0 +1,49 @@
+{
+  "hash": "480d0226",
+  "configHash": "84909c12",
+  "lockfileHash": "9b60edd5",
+  "browserHash": "00ed9476",
+  "optimized": {
+    "react": {
+      "src": "../../../WatchWise/node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "fad31c8e",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../../WatchWise/node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "6cfbff7e",
+      "needsInterop": true
+    },
+    "react-router-dom": {
+      "src": "../../../WatchWise/node_modules/react-router-dom/dist/index.js",
+      "file": "react-router-dom.js",
+      "fileHash": "ac7e930a",
+      "needsInterop": false
+    },
+    "@supabase/supabase-js": {
+      "src": "../../../WatchWise/node_modules/@supabase/supabase-js/dist/index.mjs",
+      "file": "@supabase_supabase-js.js",
+      "fileHash": "d7281443",
+      "needsInterop": false
+    },
+    "lucide-react": {
+      "src": "../../../WatchWise/node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "97acd8e1",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-FVXV544K": {
+      "file": "chunk-FVXV544K.js"
+    },
+    "chunk-C7A4YV6D": {
+      "file": "chunk-C7A4YV6D.js"
+    },
+    "chunk-G3PMV62Z": {
+      "file": "chunk-G3PMV62Z.js"
+    }
+  }
+}
