@@ -12,6 +12,22 @@ const MEDIA_TABS = [
   { value: 'tv', label: 'TV Shows', icon: Tv },
 ];
 
+const LANGUAGES = [
+  { code: '', label: 'All' },
+  { code: 'en', label: 'English' },
+  { code: 'ko', label: 'Korean' },
+  { code: 'ja', label: 'Japanese' },
+  { code: 'fr', label: 'French' },
+  { code: 'es', label: 'Spanish' },
+  { code: 'hi', label: 'Hindi' },
+  { code: 'zh', label: 'Chinese' },
+  { code: 'de', label: 'German' },
+  { code: 'it', label: 'Italian' },
+  { code: 'pt', label: 'Portuguese' },
+  { code: 'tr', label: 'Turkish' },
+  { code: 'ar', label: 'Arabic' },
+];
+
 export default function Browse({ onAuthRequired }) {
   const [searchParams] = useSearchParams();
   const initialGenre = searchParams.get('genre') || 'All';
@@ -19,12 +35,13 @@ export default function Browse({ onAuthRequired }) {
   const [query, setQuery] = useState('');
   const [mediaType, setMediaType] = useState('all');
   const [selectedGenre, setSelectedGenre] = useState(initialGenre);
+  const [selectedLanguage, setSelectedLanguage] = useState('');
 
   useEffect(() => {
     setSelectedGenre(searchParams.get('genre') || 'All');
   }, [searchParams]);
 
-  const { items, loading, loadMore, hasMore } = useTMDB({ mediaType, query });
+  const { items, loading, loadMore, hasMore } = useTMDB({ mediaType, query, language: selectedLanguage });
 
   const filtered =
     selectedGenre === 'All' ? items : items.filter((f) => f.genres.includes(selectedGenre));
@@ -50,6 +67,7 @@ export default function Browse({ onAuthRequired }) {
             onClick={() => {
               setMediaType(value);
               setSelectedGenre('All');
+              setSelectedLanguage('');
             }}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               mediaType === value
@@ -78,6 +96,24 @@ export default function Browse({ onAuthRequired }) {
           <p className="text-xs text-gray-500 mb-2 uppercase tracking-wider">Genre</p>
           <GenreFilter items={availableGenres} selected={selectedGenre} onSelect={setSelectedGenre} />
         </div>
+        <div>
+          <p className="text-xs text-gray-500 mb-2 uppercase tracking-wider">Language</p>
+          <div className="flex flex-wrap gap-2">
+            {LANGUAGES.map(({ code, label }) => (
+              <button
+                key={code}
+                onClick={() => setSelectedLanguage(code)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  selectedLanguage === code
+                    ? 'bg-orange-500 text-white'
+                    : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Results count */}
@@ -86,13 +122,19 @@ export default function Browse({ onAuthRequired }) {
           Showing <span className="text-white font-semibold">{filtered.length}</span> result
           {filtered.length !== 1 ? 's' : ''}
           {selectedGenre !== 'All' && <span className="text-orange-400"> · {selectedGenre}</span>}
+          {selectedLanguage && (
+            <span className="text-orange-400">
+              {' '}· {LANGUAGES.find((l) => l.code === selectedLanguage)?.label}
+            </span>
+          )}
           {query && <span className="text-orange-400"> · "{query}"</span>}
         </p>
-        {(selectedGenre !== 'All' || query) && (
+        {(selectedGenre !== 'All' || selectedLanguage || query) && (
           <button
             onClick={() => {
               setQuery('');
               setSelectedGenre('All');
+              setSelectedLanguage('');
             }}
             className="text-xs text-gray-500 hover:text-orange-400 transition-colors"
           >
@@ -137,6 +179,7 @@ export default function Browse({ onAuthRequired }) {
             onClick={() => {
               setQuery('');
               setSelectedGenre('All');
+              setSelectedLanguage('');
             }}
             className="mt-6 px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-full text-sm font-medium transition-colors"
           >

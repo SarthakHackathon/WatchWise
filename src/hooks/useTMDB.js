@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   fetchPopularMovies,
   fetchPopularTV,
+  discoverMovies,
+  discoverTV,
   searchMulti,
   fetchMovieGenres,
   fetchTVGenres,
@@ -9,7 +11,7 @@ import {
   normalizeTV,
 } from '../lib/tmdb';
 
-export function useTMDB({ mediaType = 'all', query = '' }) {
+export function useTMDB({ mediaType = 'all', query = '', language = '' }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -22,25 +24,29 @@ export function useTMDB({ mediaType = 'all', query = '' }) {
       .catch(console.error);
   }, []);
 
-  // Reset when query or mediaType changes
+  // Reset when filters change
   useEffect(() => {
     setItems([]);
     setPage(1);
     setTotalPages(1);
-  }, [query, mediaType]);
+  }, [query, mediaType, language]);
 
   useEffect(() => {
     if (!genreMaps) return;
 
     setLoading(true);
 
+    const lang = language || null;
+
     let promise;
 
     if (query.trim()) {
+      // Search: fetch then filter by language client-side
       promise = searchMulti(query, page).then((data) => {
         const results = data.results
           .filter((item) => item.media_type === 'movie' || item.media_type === 'tv')
           .filter((item) => mediaType === 'all' || item.media_type === mediaType)
+          .filter((item) => !lang || item.original_language === lang)
           .map((item) =>
             item.media_type === 'movie'
               ? normalizeMovie(item, genreMaps.movie)
@@ -49,30 +55,33 @@ export function useTMDB({ mediaType = 'all', query = '' }) {
         return { results, totalPages: data.total_pages };
       });
     } else if (mediaType === 'movie') {
-      promise = fetchPopularMovies(page).then((data) => ({
+      const fetch = lang ? discoverMovies : fetchPopularMovies;
+      promise = fetch(page, lang).then((data) => ({
         results: data.results.map((m) => normalizeMovie(m, genreMaps.movie)),
         totalPages: data.total_pages,
       }));
     } else if (mediaType === 'tv') {
-      promise = fetchPopularTV(page).then((data) => ({
+      const fetch = lang ? discoverTV : fetchPopularTV;
+      promise = fetch(page, lang).then((data) => ({
         results: data.results.map((s) => normalizeTV(s, genreMaps.tv)),
         totalPages: data.total_pages,
       }));
     } else {
-      promise = Promise.all([fetchPopularMovies(page), fetchPopularTV(page)]).then(
-        ([movies, tv]) => {
-          const movieResults = movies.results.map((m) => normalizeMovie(m, genreMaps.movie));
-          const tvResults = tv.results.map((s) => normalizeTV(s, genreMaps.tv));
-          // Interleave movies and TV
-          const results = [];
-          const len = Math.max(movieResults.length, tvResults.length);
-          for (let i = 0; i < len; i++) {
-            if (movieResults[i]) results.push(movieResults[i]);
-            if (tvResults[i]) results.push(tvResults[i]);
-          }
-          return { results, totalPages: Math.max(movies.total_pages, tv.total_pages) };
+      // 'all' — fetch both
+      const fetchM = lang ? discoverMovies : fetchPopularMovies;
+      const fetchT = lang ? discoverTV : fetchPopularTV;
+      promise = Promise.all([fetchM(page, lang), fetchT(page, lang)]).then(([movies, tv]) => {
+        const movieResults = movies.results.map((m) => normalizeMovie(m, genreMaps.movie));
+        const tvResults = tv.results.map((s) => normalizeTV(s, genreMaps.tv));
+        // Interleave movies and TV
+        const results = [];
+        const len = Math.max(movieResults.length, tvResults.length);
+        for (let i = 0; i < len; i++) {
+          if (movieResults[i]) results.push(movieResults[i]);
+          if (tvResults[i]) results.push(tvResults[i]);
         }
-      );
+        return { results, totalPages: Math.max(movies.total_pages, tv.total_pages) };
+      });
     }
 
     promise
@@ -82,7 +91,7 @@ export function useTMDB({ mediaType = 'all', query = '' }) {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [genreMaps, query, mediaType, page]);
+  }, [genreMaps, query, mediaType, language, page]);
 
   const loadMore = useCallback(() => {
     if (page < totalPages && !loading) setPage((p) => p + 1);

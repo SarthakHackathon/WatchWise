@@ -49,6 +49,7 @@ export function normalizeMovie(movie, genreMap = {}) {
     genres: (movie.genre_ids || []).map((id) => genreMap[id]).filter(Boolean),
     poster: posterUrl(movie.poster_path),
     backdrop: backdropUrl(movie.backdrop_path),
+    original_language: movie.original_language || null,
     runtime: null,
     streaming: [],
   };
@@ -66,6 +67,7 @@ export function normalizeTV(show, genreMap = {}) {
     genres: (show.genre_ids || []).map((id) => genreMap[id]).filter(Boolean),
     poster: posterUrl(show.poster_path),
     backdrop: backdropUrl(show.backdrop_path),
+    original_language: show.original_language || null,
     runtime: null,
     streaming: [],
   };
@@ -77,6 +79,18 @@ export async function fetchPopularMovies(page = 1) {
 
 export async function fetchPopularTV(page = 1) {
   return tmdbFetch('/tv/popular', { page });
+}
+
+export async function discoverMovies(page = 1, language = null) {
+  const params = { page, sort_by: 'popularity.desc' };
+  if (language) params.with_original_language = language;
+  return tmdbFetch('/discover/movie', params);
+}
+
+export async function discoverTV(page = 1, language = null) {
+  const params = { page, sort_by: 'popularity.desc' };
+  if (language) params.with_original_language = language;
+  return tmdbFetch('/discover/tv', params);
 }
 
 export async function searchMulti(query, page = 1) {
