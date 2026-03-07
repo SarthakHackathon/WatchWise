@@ -7,6 +7,7 @@ const WatchlistContext = createContext(null);
 export function WatchlistProvider({ children }) {
   const { user, isAuthenticated } = useAuth();
   const [watchlist, setWatchlist] = useState([]);
+  const [lastAdded, setLastAdded] = useState(null);
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
@@ -27,6 +28,7 @@ export function WatchlistProvider({ children }) {
   const addToWatchlist = async (film) => {
     if (isInWatchlist(film.id)) return;
     setWatchlist(prev => [film, ...prev]);
+    setLastAdded(film.id);
     await supabase.from('watchlist').insert({
       user_id: user.id,
       film_id: String(film.id),
@@ -48,6 +50,7 @@ export function WatchlistProvider({ children }) {
   return (
     <WatchlistContext.Provider value={{
       watchlist,
+      lastAdded,
       addToWatchlist,
       removeFromWatchlist,
       isInWatchlist,

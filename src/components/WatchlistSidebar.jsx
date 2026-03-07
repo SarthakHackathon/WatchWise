@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { X, Bookmark, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -5,7 +6,22 @@ import { useWatchlist } from '../context/WatchlistContext';
 
 export default function WatchlistSidebar({ isOpen, onClose }) {
   const { isAuthenticated } = useAuth();
-  const { watchlist, removeFromWatchlist } = useWatchlist();
+  const { watchlist, removeFromWatchlist, lastAdded } = useWatchlist();
+  const [highlightId, setHighlightId] = useState(null);
+  const itemRefs = useRef({});
+
+  // Highlight and scroll to the newly added item
+  useEffect(() => {
+    if (!lastAdded) return;
+    setHighlightId(lastAdded);
+    // Scroll the item into view once the sidebar has opened
+    const scrollTimer = setTimeout(() => {
+      itemRefs.current[lastAdded]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 320); // wait for sidebar slide-in to finish
+    // Clear highlight after 2.5s
+    const clearTimer = setTimeout(() => setHighlightId(null), 2800);
+    return () => { clearTimeout(scrollTimer); clearTimeout(clearTimer); };
+  }, [lastAdded]);
 
   if (!isAuthenticated) return null;
 
@@ -62,7 +78,12 @@ export default function WatchlistSidebar({ isOpen, onClose }) {
               {watchlist.map((film) => (
                 <li
                   key={film.id}
-                  className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-800 group transition-colors"
+                  ref={(el) => { itemRefs.current[film.id] = el; }}
+                  className={`flex items-center gap-3 px-2 py-2 rounded-lg group transition-all duration-500 ${
+                    highlightId === film.id
+                      ? 'bg-orange-500/15 ring-1 ring-orange-500/40'
+                      : 'hover:bg-gray-800'
+                  }`}
                 >
                   <Link
                     to={`/film/${film.id}`}
