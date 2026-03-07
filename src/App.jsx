@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { WatchlistProvider } from './context/WatchlistContext';
 import { RatingsProvider } from './context/RatingsContext';
+import { useWatchlist } from './context/WatchlistContext';
 import Navbar from './components/Navbar';
 import AuthModal from './components/AuthModal';
 import WatchlistSidebar from './components/WatchlistSidebar';
@@ -15,6 +16,12 @@ import AIPicks from './pages/AIPicks';
 function AppContent() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { lastAdded } = useWatchlist();
+
+  // Open sidebar automatically when a new item is added
+  useEffect(() => {
+    if (lastAdded) setSidebarOpen(true);
+  }, [lastAdded]);
 
   return (
     <div className="min-h-screen bg-gray-950">
