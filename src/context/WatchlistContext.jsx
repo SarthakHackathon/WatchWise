@@ -18,6 +18,7 @@ export function WatchlistProvider({ children }) {
       .from('watchlist')
       .select('film_data')
       .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
       .then(({ data }) => {
         setWatchlist(data ? data.map(r => r.film_data) : []);
       });
@@ -25,7 +26,7 @@ export function WatchlistProvider({ children }) {
 
   const addToWatchlist = async (film) => {
     if (isInWatchlist(film.id)) return;
-    setWatchlist(prev => [...prev, film]);
+    setWatchlist(prev => [film, ...prev]);
     await supabase.from('watchlist').insert({
       user_id: user.id,
       film_id: String(film.id),

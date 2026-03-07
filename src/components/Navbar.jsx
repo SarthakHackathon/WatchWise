@@ -4,7 +4,7 @@ import { Bookmark, LogIn, LogOut, Menu, X, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useWatchlist } from '../context/WatchlistContext';
 
-export default function Navbar({ onAuthClick }) {
+export default function Navbar({ onAuthClick, onToggleSidebar, sidebarOpen }) {
   const { user, isAuthenticated, logout } = useAuth();
   const { watchlist } = useWatchlist();
   const navigate = useNavigate();
@@ -73,19 +73,33 @@ export default function Navbar({ onAuthClick }) {
 
           {/* Right side */}
           <div className="hidden md:flex items-center gap-3">
-            {/* Watchlist */}
-            <Link
-              to="/watchlist"
-              className="relative p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-all duration-200"
-              aria-label="Watchlist"
-            >
-              <Bookmark className="w-5 h-5" />
-              {watchlist.length > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-orange-500 text-white text-[10px] font-bold leading-none">
-                  {watchlist.length > 99 ? '99+' : watchlist.length}
-                </span>
-              )}
-            </Link>
+            {/* Watchlist — toggles sidebar when authenticated, else navigates */}
+            {isAuthenticated ? (
+              <button
+                onClick={onToggleSidebar}
+                className={`relative p-2 rounded-lg transition-all duration-200 ${
+                  sidebarOpen
+                    ? 'text-orange-500 bg-orange-500/10'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                }`}
+                aria-label="Toggle watchlist"
+              >
+                <Bookmark className={`w-5 h-5 ${sidebarOpen ? 'fill-orange-500' : ''}`} />
+                {watchlist.length > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-orange-500 text-white text-[10px] font-bold leading-none">
+                    {watchlist.length > 99 ? '99+' : watchlist.length}
+                  </span>
+                )}
+              </button>
+            ) : (
+              <Link
+                to="/watchlist"
+                className="relative p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-all duration-200"
+                aria-label="Watchlist"
+              >
+                <Bookmark className="w-5 h-5" />
+              </Link>
+            )}
 
             {/* Auth */}
             {isAuthenticated ? (
