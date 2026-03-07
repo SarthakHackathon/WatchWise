@@ -5,6 +5,7 @@ import { WatchlistProvider } from './context/WatchlistContext';
 import { RatingsProvider } from './context/RatingsContext';
 import Navbar from './components/Navbar';
 import AuthModal from './components/AuthModal';
+import WatchlistSidebar from './components/WatchlistSidebar';
 import Home from './pages/Home';
 import Browse from './pages/Browse';
 import FilmDetail from './pages/FilmDetail';
@@ -13,11 +14,17 @@ import AIPicks from './pages/AIPicks';
 
 function AppContent() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-950">
-      <Navbar onAuthClick={() => setAuthModalOpen(true)} />
+      <Navbar
+        onAuthClick={() => setAuthModalOpen(true)}
+        onToggleSidebar={() => setSidebarOpen((v) => !v)}
+        sidebarOpen={sidebarOpen}
+      />
       <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      <WatchlistSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <Routes>
         <Route path="/" element={<Home onAuthRequired={() => setAuthModalOpen(true)} />} />
         <Route path="/browse" element={<Browse onAuthRequired={() => setAuthModalOpen(true)} />} />
