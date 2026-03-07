@@ -31,6 +31,7 @@ const LANGUAGES = [
 const SORT_LABELS = {
   popular: { heading: 'Browse', subheading: 'Discover popular movies and TV shows.' },
   top_rated: { heading: 'Top Rated', subheading: 'The highest-rated movies and TV shows of all time.' },
+  trending: { heading: 'Trending Now', subheading: 'What everyone is watching this week.' },
 };
 
 export default function Browse({ onAuthRequired }) {

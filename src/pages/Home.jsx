@@ -82,7 +82,7 @@ export default function Home({ onAuthRequired }) {
           <SectionHeader
             title="Trending Now"
             icon={<TrendingUp size={22} className="text-orange-500" />}
-            linkTo="/browse"
+            linkTo="/browse?sort=trending"
             linkLabel="See all"
           />
           <HorizontalRow films={trending} onAuthRequired={onAuthRequired} />

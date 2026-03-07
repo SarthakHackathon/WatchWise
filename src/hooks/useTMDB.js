@@ -4,6 +4,8 @@ import {
   fetchPopularTV,
   fetchTopRatedMovies,
   fetchTopRatedTV,
+  fetchTrendingMovies,
+  fetchTrendingTV,
   discoverMovies,
   discoverTV,
   searchMulti,
@@ -57,21 +59,21 @@ export function useTMDB({ mediaType = 'all', query = '', language = '', sort = '
         return { results, totalPages: data.total_pages };
       });
     } else if (mediaType === 'movie') {
-      const fetch = sort === 'top_rated' ? fetchTopRatedMovies : lang ? discoverMovies : fetchPopularMovies;
+      const fetch = sort === 'top_rated' ? fetchTopRatedMovies : sort === 'trending' ? fetchTrendingMovies : lang ? discoverMovies : fetchPopularMovies;
       promise = fetch(page, lang).then((data) => ({
         results: data.results.map((m) => normalizeMovie(m, genreMaps.movie)),
         totalPages: data.total_pages,
       }));
     } else if (mediaType === 'tv') {
-      const fetch = sort === 'top_rated' ? fetchTopRatedTV : lang ? discoverTV : fetchPopularTV;
+      const fetch = sort === 'top_rated' ? fetchTopRatedTV : sort === 'trending' ? fetchTrendingTV : lang ? discoverTV : fetchPopularTV;
       promise = fetch(page, lang).then((data) => ({
         results: data.results.map((s) => normalizeTV(s, genreMaps.tv)),
         totalPages: data.total_pages,
       }));
     } else {
       // 'all' — fetch both
-      const fetchM = sort === 'top_rated' ? fetchTopRatedMovies : lang ? discoverMovies : fetchPopularMovies;
-      const fetchT = sort === 'top_rated' ? fetchTopRatedTV : lang ? discoverTV : fetchPopularTV;
+      const fetchM = sort === 'top_rated' ? fetchTopRatedMovies : sort === 'trending' ? fetchTrendingMovies : lang ? discoverMovies : fetchPopularMovies;
+      const fetchT = sort === 'top_rated' ? fetchTopRatedTV : sort === 'trending' ? fetchTrendingTV : lang ? discoverTV : fetchPopularTV;
       promise = Promise.all([fetchM(page, lang), fetchT(page, lang)]).then(([movies, tv]) => {
         const movieResults = movies.results.map((m) => normalizeMovie(m, genreMaps.movie));
         const tvResults = tv.results.map((s) => normalizeTV(s, genreMaps.tv));
