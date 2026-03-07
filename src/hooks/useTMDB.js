@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   fetchPopularMovies,
   fetchPopularTV,
+  fetchTopRatedMovies,
+  fetchTopRatedTV,
   discoverMovies,
   discoverTV,
   searchMulti,
@@ -11,7 +13,7 @@ import {
   normalizeTV,
 } from '../lib/tmdb';
 
-export function useTMDB({ mediaType = 'all', query = '', language = '' }) {
+export function useTMDB({ mediaType = 'all', query = '', language = '', sort = 'popular' }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -29,7 +31,7 @@ export function useTMDB({ mediaType = 'all', query = '', language = '' }) {
     setItems([]);
     setPage(1);
     setTotalPages(1);
-  }, [query, mediaType, language]);
+  }, [query, mediaType, language, sort]);
 
   useEffect(() => {
     if (!genreMaps) return;
@@ -55,21 +57,21 @@ export function useTMDB({ mediaType = 'all', query = '', language = '' }) {
         return { results, totalPages: data.total_pages };
       });
     } else if (mediaType === 'movie') {
-      const fetch = lang ? discoverMovies : fetchPopularMovies;
+      const fetch = sort === 'top_rated' ? fetchTopRatedMovies : lang ? discoverMovies : fetchPopularMovies;
       promise = fetch(page, lang).then((data) => ({
         results: data.results.map((m) => normalizeMovie(m, genreMaps.movie)),
         totalPages: data.total_pages,
       }));
     } else if (mediaType === 'tv') {
-      const fetch = lang ? discoverTV : fetchPopularTV;
+      const fetch = sort === 'top_rated' ? fetchTopRatedTV : lang ? discoverTV : fetchPopularTV;
       promise = fetch(page, lang).then((data) => ({
         results: data.results.map((s) => normalizeTV(s, genreMaps.tv)),
         totalPages: data.total_pages,
       }));
     } else {
       // 'all' — fetch both
-      const fetchM = lang ? discoverMovies : fetchPopularMovies;
-      const fetchT = lang ? discoverTV : fetchPopularTV;
+      const fetchM = sort === 'top_rated' ? fetchTopRatedMovies : lang ? discoverMovies : fetchPopularMovies;
+      const fetchT = sort === 'top_rated' ? fetchTopRatedTV : lang ? discoverTV : fetchPopularTV;
       promise = Promise.all([fetchM(page, lang), fetchT(page, lang)]).then(([movies, tv]) => {
         const movieResults = movies.results.map((m) => normalizeMovie(m, genreMaps.movie));
         const tvResults = tv.results.map((s) => normalizeTV(s, genreMaps.tv));
@@ -91,7 +93,7 @@ export function useTMDB({ mediaType = 'all', query = '', language = '' }) {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [genreMaps, query, mediaType, language, page]);
+  }, [genreMaps, query, mediaType, language, sort, page]);
 
   const loadMore = useCallback(() => {
     if (page < totalPages && !loading) setPage((p) => p + 1);
