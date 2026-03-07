@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Film, Bookmark, LogIn, LogOut, User, Menu, X, Sparkles } from 'lucide-react';
+import { Bookmark, LogIn, LogOut, Menu, X, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useWatchlist } from '../context/WatchlistContext';
 
@@ -45,16 +45,14 @@ export default function Navbar({ onAuthClick }) {
           {/* Logo */}
           <Link
             to="/"
-            className="flex items-center gap-2 flex-shrink-0 group"
+            className="flex-shrink-0"
             onClick={() => setMobileOpen(false)}
           >
-            <div className="p-1.5 rounded-lg bg-orange-500/10 group-hover:bg-orange-500/20 transition-colors">
-              <Film className="w-5 h-5 text-orange-500" />
-            </div>
-            <span className="text-lg font-bold tracking-tight">
-              <span className="text-white">Watch</span>
-              <span className="text-orange-500">Wise</span>
-            </span>
+            <img
+              src="/Logo.png"
+              alt="WatchWise"
+              className="h-10 w-auto object-contain"
+            />
           </Link>
 
           {/* Desktop nav links */}
