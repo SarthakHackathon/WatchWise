@@ -93,6 +93,18 @@ export async function discoverTV(page = 1, language = null) {
   return tmdbFetch('/discover/tv', params);
 }
 
+export async function fetchTopRatedMovies(page = 1, language = null) {
+  const params = { page };
+  if (language) params.with_original_language = language;
+  return tmdbFetch('/movie/top_rated', params);
+}
+
+export async function fetchTopRatedTV(page = 1, language = null) {
+  const params = { page };
+  if (language) params.with_original_language = language;
+  return tmdbFetch('/tv/top_rated', params);
+}
+
 export async function searchMulti(query, page = 1) {
   return tmdbFetch('/search/multi', { query, page });
 }

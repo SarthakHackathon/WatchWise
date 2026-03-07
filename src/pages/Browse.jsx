@@ -28,9 +28,15 @@ const LANGUAGES = [
   { code: 'ar', label: 'Arabic' },
 ];
 
+const SORT_LABELS = {
+  popular: { heading: 'Browse', subheading: 'Discover popular movies and TV shows.' },
+  top_rated: { heading: 'Top Rated', subheading: 'The highest-rated movies and TV shows of all time.' },
+};
+
 export default function Browse({ onAuthRequired }) {
   const [searchParams] = useSearchParams();
   const initialGenre = searchParams.get('genre') || 'All';
+  const sortParam = searchParams.get('sort') || 'popular';
 
   const [query, setQuery] = useState('');
   const [mediaType, setMediaType] = useState('all');
@@ -41,7 +47,9 @@ export default function Browse({ onAuthRequired }) {
     setSelectedGenre(searchParams.get('genre') || 'All');
   }, [searchParams]);
 
-  const { items, loading, loadMore, hasMore } = useTMDB({ mediaType, query, language: selectedLanguage });
+  const { items, loading, loadMore, hasMore } = useTMDB({ mediaType, query, language: selectedLanguage, sort: sortParam });
+
+  const { heading, subheading } = SORT_LABELS[sortParam] ?? SORT_LABELS.popular;
 
   const filtered =
     selectedGenre === 'All' ? items : items.filter((f) => f.genres.includes(selectedGenre));
@@ -55,8 +63,8 @@ export default function Browse({ onAuthRequired }) {
     <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-1">Browse</h1>
-        <p className="text-gray-400">Discover popular movies and TV shows.</p>
+        <h1 className="text-3xl font-bold text-white mb-1">{heading}</h1>
+        <p className="text-gray-400">{subheading}</p>
       </div>
 
       {/* Media type tabs */}

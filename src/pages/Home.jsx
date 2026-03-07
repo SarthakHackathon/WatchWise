@@ -1,5 +1,6 @@
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, TrendingUp, Star, ChevronRight } from 'lucide-react';
+import { Sparkles, TrendingUp, Star, ChevronRight, ChevronLeft } from 'lucide-react';
 import { films, genres } from '../data/films';
 import HeroSection from '../components/HeroSection';
 import FilmCard from '../components/FilmCard';
@@ -30,13 +31,37 @@ function SectionHeader({ title, icon, linkTo, linkLabel }) {
 }
 
 function HorizontalRow({ films, onAuthRequired }) {
+  const scrollRef = useRef(null);
+
+  const scroll = (dir) => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: dir * 320, behavior: 'smooth' });
+    }
+  };
+
   return (
-    <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
-      {films.map((film) => (
-        <div key={film.id} className="flex-shrink-0 w-36 sm:w-44">
-          <FilmCard film={film} onAuthRequired={onAuthRequired} />
-        </div>
-      ))}
+    <div className="relative group">
+      <button
+        onClick={() => scroll(-1)}
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-gray-900/90 hover:bg-gray-800 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity -translate-x-1/2 shadow-lg"
+        aria-label="Scroll left"
+      >
+        <ChevronLeft size={20} />
+      </button>
+      <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
+        {films.map((film) => (
+          <div key={film.id} className="flex-shrink-0 w-36 sm:w-44">
+            <FilmCard film={film} onAuthRequired={onAuthRequired} />
+          </div>
+        ))}
+      </div>
+      <button
+        onClick={() => scroll(1)}
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-gray-900/90 hover:bg-gray-800 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity translate-x-1/2 shadow-lg"
+        aria-label="Scroll right"
+      >
+        <ChevronRight size={20} />
+      </button>
     </div>
   );
 }
@@ -68,7 +93,7 @@ export default function Home({ onAuthRequired }) {
           <SectionHeader
             title="Top Rated"
             icon={<Star size={22} className="text-yellow-400" />}
-            linkTo="/browse"
+            linkTo="/browse?sort=top_rated"
             linkLabel="See all"
           />
           <HorizontalRow films={topRated} onAuthRequired={onAuthRequired} />
