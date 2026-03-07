@@ -49,7 +49,7 @@ export default function Navbar({ onAuthClick }) {
             onClick={() => setMobileOpen(false)}
           >
             <img
-              src="/Logo.jpg"
+              src="/Logo.png"
               alt="WatchWise"
               className="h-10 w-auto object-contain"
             />
